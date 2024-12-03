@@ -160,7 +160,8 @@ def load_model(ckpt_path, model_config, device, model_type):
     elif model_type == 'motion_generator':
         model_data = torch.load(ckpt_path, map_location=device)
         model_args = NullableArgs(model_data['args'])
-        model = DitTalkingHead(motion_feat_dim=model_args.motion_feat_dim, 
+        model = DitTalkingHead(device=device,
+                               motion_feat_dim=model_args.motion_feat_dim, 
                                n_motions=model_args.n_motions, 
                                n_prev_motions=model_args.n_prev_motions,
                                feature_dim=model_args.feature_dim,

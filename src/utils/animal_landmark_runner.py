@@ -20,10 +20,19 @@ from .dependencies.XPose.models import build_model
 from .dependencies.XPose.predefined_keypoints import *
 from .dependencies.XPose.util import box_ops
 from .dependencies.XPose.util.config import Config
+import io
 
+
+class CPU_Unpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if module == 'torch.storage' and name == '_load_from_bytes':
+            return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
+        else:
+            return super().find_class(module, name)
 
 class XPoseRunner(object):
     def __init__(self, model_config_path, model_checkpoint_path, embeddings_cache_path=None, cpu_only=False, **kwargs):
+        
         self.device_id = kwargs.get("device_id", 0)
         self.flag_use_half_precision = kwargs.get("flag_use_half_precision", True)
         self.device = f"cuda:{self.device_id}" if not cpu_only else "cpu"
@@ -31,11 +40,20 @@ class XPoseRunner(object):
         self.timer = Timer()
         # Load cached embeddings if available
         try:
-            with open(f'{embeddings_cache_path}_9.pkl', 'rb') as f:
-                self.ins_text_embeddings_9, self.kpt_text_embeddings_9 = pickle.load(f)
-            with open(f'{embeddings_cache_path}_68.pkl', 'rb') as f:
-                self.ins_text_embeddings_68, self.kpt_text_embeddings_68 = pickle.load(f)
-            print("Loaded cached embeddings from file.")
+            print(f'{embeddings_cache_path}_9.pkl')
+            if not self.device == "cpu":
+                with open(f'{embeddings_cache_path}_9.pkl', 'rb') as f:
+                    self.ins_text_embeddings_9, self.kpt_text_embeddings_9 = pickle.load(f)
+                with open(f'{embeddings_cache_path}_68.pkl', 'rb') as f:
+                    self.ins_text_embeddings_68, self.kpt_text_embeddings_68 = pickle.load(f)
+                print("Loaded cached embeddings from file.")
+                
+            else:
+                with open(f'{embeddings_cache_path}_9.pkl', 'rb') as f:
+                    self.ins_text_embeddings_9, self.kpt_text_embeddings_9 = CPU_Unpickler(f).load()
+                with open(f'{embeddings_cache_path}_68.pkl', 'rb') as f:
+                    self.ins_text_embeddings_68, self.kpt_text_embeddings_68 = CPU_Unpickler(f).load()
+                    
         except Exception:
             raise ValueError("Could not load clip embeddings from file, please check your file path.")
 
@@ -44,6 +62,7 @@ class XPoseRunner(object):
         args.device = device
         model = build_model(args)
         checkpoint = torch.load(model_checkpoint_path, map_location=lambda storage, loc: storage)
+        # checkpoint = torch.load(model_checkpoint_path, map_location=torch.device(device))
         load_res = model.load_state_dict(clean_state_dict(checkpoint["model"]), strict=False)
         model.eval()
         return model
@@ -76,10 +95,8 @@ class XPoseRunner(object):
             "kpts_embeddings_text": torch.cat((kpt_text_embeddings.float(), torch.zeros(100 - kpt_text_embeddings.shape[0], 512, device=self.device)), dim=0),
             "kpt_vis_text": torch.cat((torch.ones(kpt_text_embeddings.shape[0], device=self.device), torch.zeros(100 - kpt_text_embeddings.shape[0], device=self.device)), dim=0)
         }
-
         self.model = self.model.to(self.device)
         image = image.to(self.device)
-
         with torch.no_grad():
             with torch.autocast(device_type=self.device[:4], dtype=torch.float16, enabled=self.flag_use_half_precision):
                 outputs = self.model(image[None], [target])

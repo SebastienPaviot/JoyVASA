@@ -315,7 +315,7 @@ class UniPose(nn.Module):
                - "aux_outputs": Optional, only returned when auxilary losses are activated. It is a list of
                                 dictionnaries containing the two above keys for each decoder layer.
         """
-
+        device = samples.device
         captions = [t['instance_text_prompt'] for t in targets]
         bs=len(captions)
         tensor_list = [tgt["object_embeddings_text"] for tgt in targets]
@@ -391,7 +391,7 @@ class UniPose(nn.Module):
             label_enc = encoded_text
         if self.dn_number > 0 or targets is not None:
             input_query_label, input_query_bbox, attn_mask, attn_mask2, dn_meta = \
-                prepare_for_mask(kpt_mask=kpt_mask)
+                prepare_for_mask(kpt_mask=kpt_mask, device=device)
         else:
             assert targets is None
             input_query_bbox = input_query_label = attn_mask = attn_mask2 = dn_meta = None

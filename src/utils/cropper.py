@@ -43,7 +43,8 @@ class Cropper(object):
         self.crop_cfg: CropConfig = kwargs.get("crop_cfg", None)
         self.image_type = kwargs.get("image_type", 'human_face')
         device_id = kwargs.get("device_id", 0)
-        flag_force_cpu = kwargs.get("flag_force_cpu", False)
+        # flag_force_cpu = kwargs.get("flag_force_cpu", False)
+        flag_force_cpu = self.crop_cfg.flag_force_cpu
         if flag_force_cpu:
             device = "cpu"
             face_analysis_wrapper_provider = ["CPUExecutionProvider"]
@@ -74,7 +75,8 @@ class Cropper(object):
             device_id=device_id,
         )
         self.human_landmark_runner.warmup()
-
+        if device == 'cpu':
+            cpu_only = True 
         if self.image_type == "animal_face":
             from .animal_landmark_runner import XPoseRunner as AnimalLandmarkRunner
             self.animal_landmark_runner = AnimalLandmarkRunner(
@@ -82,6 +84,7 @@ class Cropper(object):
                     model_checkpoint_path=self.crop_cfg.xpose_ckpt_path,
                     embeddings_cache_path=self.crop_cfg.xpose_embedding_cache_path,
                     flag_use_half_precision=kwargs.get("flag_use_half_precision", True),
+                    cpu_only=cpu_only,
                 )
             self.animal_landmark_runner.warmup()
 

@@ -21,7 +21,7 @@ class ArgumentConfig(PrintableConfig):
     ########## inference arguments ##########
     flag_use_half_precision: bool = False  # whether to use half precision (FP16). If black boxes appear, it might be due to GPU incompatibility; set to False.
     device_id: int = 0  # gpu device id
-    flag_force_cpu: bool = False  # force cpu inference, WIP!
+    flag_force_cpu: bool = True  # force cpu inference, WIP!
     flag_normalize_lip: bool = False  # False,  whether to let the lip to close state before animation, only take effect when flag_eye_retargeting and flag_lip_retargeting is False
 
     flag_source_video_eye_retargeting: bool = False  # when the input is a source video, whether to let the eye-open scalar of each frame to be the same as the first source frame before the animation, only take effect when flag_eye_retargeting and flag_lip_retargeting is False, may cause the inter-frame jittering

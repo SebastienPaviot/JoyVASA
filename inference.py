@@ -66,7 +66,8 @@ def main():
         raise RuntimeError(f"error args.mode: {args.mode}")
 
     # run
-    pipeline.execute(args)
+    final_video = pipeline.execute(args)
+    print(final_video)
 
 
 if __name__ == "__main__":

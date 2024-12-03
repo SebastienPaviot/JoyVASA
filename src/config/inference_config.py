@@ -50,7 +50,7 @@ class InferenceConfig(PrintableConfig):
     flag_pasteback: bool = True
     flag_do_crop: bool = True
     flag_do_rot: bool = True
-    flag_force_cpu: bool = False
+    flag_force_cpu: bool = True
     flag_do_torch_compile: bool = False
     driving_option: str = "pose-friendly" # "expression-friendly" or "pose-friendly"
     driving_multiplier: float = 1.0

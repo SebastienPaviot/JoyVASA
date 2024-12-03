@@ -75,6 +75,7 @@ class Cropper(object):
             device_id=device_id,
         )
         self.human_landmark_runner.warmup()
+        cpu_only = False
         if device == 'cpu':
             cpu_only = True 
         if self.image_type == "animal_face":

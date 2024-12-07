@@ -1,6 +1,6 @@
 # JoyVASA - Run on Google Colab
 
-This repository contains a Google Colab Notebook designed to run [JoyVASA](https://joyvasamodel.com), an advanced AI model.
+This repository contains a Google Colab Notebook designed to run JoyVASA an advanced AI model.
 
 ## Features
 
